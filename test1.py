@@ -1,42 +1,74 @@
+# app.py
 import streamlit as st
+import random
 
-# 샘플 코디 데이터 (조건 기반 추천)
-outfit_db = {
-    ("여성", "20대", "맑음", "데이트", "러블리"): {
-        "image": "https://i.imgur.com/ZC3HRbK.jpg",  # 예시 이미지
-        "description": "하늘하늘한 원피스에 흰색 샌들, 미니 핸드백을 매치해보세요. 로맨틱한 분위기에 잘 어울려요!",
-    },
-    ("남성", "30대", "비", "출근", "포멀"): {
-        "image": "https://i.imgur.com/Bj4N6l7.jpg",
-        "description": "그레이 정장에 방수 트렌치코트, 짙은색 로퍼를 추천해요. 비 오는 날엔 신발 방수도 중요해요.",
-    },
-    ("여성", "10대", "더움", "학교", "캐주얼"): {
-        "image": "https://i.imgur.com/V2BlhB1.jpg",
-        "description": "반팔 티셔츠에 데님 반바지, 스니커즈! 백팩과 함께 활동성도 챙기자!",
-    },
-    # 추가적으로 조건 조합 더 넣을 수 있음
-}
+# ----------------------------
+# 설정
+st.set_page_config(page_title="AI 옷 코디 추천기", layout="centered")
+st.title("🧥 AI 옷 코디 추천기")
 
-# Streamlit UI
-st.title("👗 AI 옷 코디 추천기")
-st.markdown("너의 상황에 딱 맞는 오늘의 코디를 추천해줄게!")
+st.sidebar.header("당신에 대해 알려주세요")
 
-with st.form("input_form"):
-    gender = st.selectbox("성별", ["여성", "남성"])
-    age = st.selectbox("나이대", ["10대", "20대", "30대", "40대 이상"])
-    weather = st.selectbox("날씨", ["맑음", "흐림", "비", "눈", "더움", "추움"])
-    situation = st.selectbox("상황", ["학교", "데이트", "출근", "면접", "여행", "집콕"])
-    style = st.selectbox("스타일", ["캐주얼", "러블리", "스트릿", "포멀", "꾸안꾸"])
+# ----------------------------
+# 사용자 입력
+gender = st.sidebar.selectbox("성별", ["여성", "남성"])
+age = st.sidebar.selectbox("나이대", ["10대", "20대", "30대", "40대 이상"])
+weather = st.sidebar.selectbox("오늘 날씨", ["맑음", "흐림", "비", "눈", "더움", "추움"])
+situation = st.sidebar.selectbox("상황/장소", ["학교", "데이트", "직장", "면접", "여행", "집콕"])
+style = st.sidebar.selectbox("스타일", ["캐주얼", "스트릿", "러블리", "포멀", "꾸안꾸", "미니멀"])
 
-    submitted = st.form_submit_button("코디 추천받기")
+if st.sidebar.button("코디 추천 받기"):
+    
+    # ----------------------------
+    # 간단한 코디 조합 예시
+    outfits = {
+        "여성": {
+            "캐주얼": [
+                {"text": "흰 티셔츠에 청바지, 흰 스니커즈 조합은 언제나 깔끔해요.",
+                 "image": "https://i.imgur.com/2d1h1lZ.jpg"},
+                {"text": "크롭 니트와 와이드 팬츠, 캔버스화 조합 추천!",
+                 "image": "https://i.imgur.com/Xd03qoc.jpg"}
+            ],
+            "러블리": [
+                {"text": "플로럴 원피스에 니트 가디건, 플랫슈즈를 매치해보세요.",
+                 "image": "https://i.imgur.com/5O68vh7.jpg"},
+                {"text": "하늘색 블라우스에 A라인 스커트 조합, 데이트에 좋아요!",
+                 "image": "https://i.imgur.com/Exa82IQ.jpg"}
+            ]
+        },
+        "남성": {
+            "스트릿": [
+                {"text": "오버핏 맨투맨 + 조거팬츠 + 나이키 덩크 조합 추천!",
+                 "image": "https://i.imgur.com/W1X2psJ.jpg"},
+                {"text": "그래픽 티셔츠에 와이드 청바지, 비니로 포인트!",
+                 "image": "https://i.imgur.com/M3z0mCJ.jpg"}
+            ],
+            "포멀": [
+                {"text": "네이비 셔츠에 슬랙스, 브라운 로퍼로 깔끔한 직장룩 완성.",
+                 "image": "https://i.imgur.com/1rk7tuK.jpg"},
+                {"text": "그레이 수트에 흰 셔츠, 블랙 옥스포드화 추천!",
+                 "image": "https://i.imgur.com/7KMlm7h.jpg"}
+            ]
+        }
+    }
 
-if submitted:
-    key = (gender, age, weather, situation, style)
-    outfit = outfit_db.get(key)
+    # 예외 처리: 스타일이 없는 경우 캐주얼 기본값
+    gender_outfits = outfits.get(gender, {})
+    style_outfits = gender_outfits.get(style, outfits[gender]["캐주얼"])
+    selected = random.choice(style_outfits)
 
-    if outfit:
-        st.image(outfit["image"], use_column_width=True)
-        st.success(outfit["description"])
-    else:
-        st.warning("이 조합에 맞는 코디가 아직 없어요. 조건을 다르게 바꿔보세요!")
+    # ----------------------------
+    # 결과 출력
+    st.subheader("👗 추천 코디")
+    st.write(selected["text"])
+    st.image(selected["image"], caption="추천 이미지", use_container_width=True)
+
+    # 팁 출력
+    if weather in ["비", "눈"]:
+        st.info("💡 우산 또는 방수 아이템을 챙기는 걸 잊지 마세요!")
+    elif weather == "더움":
+        st.info("💡 땀흡수 잘 되는 소재나 밝은 색상 옷을 추천해요!")
+    elif weather == "추움":
+        st.info("💡 보온성 있는 이너와 아우터를 꼭 챙기세요!")
+
 
